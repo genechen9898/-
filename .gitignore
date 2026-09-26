@@ -1,0 +1,8 @@
+apps-script.gs
+*.xlsx
+*.csv
+responses/
+data/
+.env
+*.key
+*.pem
