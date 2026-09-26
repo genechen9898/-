@@ -11,10 +11,14 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvSEREpRzyjY
    狀態
 ------------------------------------------------------------- */
 const state = {
-  screen: 'home',        // home | consent | declined | warmup | quiz | finish
+  screen: 'home',        // home | consent | declined | warmup | unitSelect | quiz | continue | finish
   consent: null,         // '同意' | '不同意'
   mood: null,
-  index: 0,              // 目前題目 index (0-21)
+  index: 0,              // 目前目前單元題目 index
+  questionIds: [],       // 依使用者選擇的單元產生題目順序
+  selectedUnits: [],     // 使用者選擇的單元
+  completedUnits: [],    // 已完成的單元
+  lastCompletedUnit: null,
   answers: {},           // { Q01: {code, text, reactionType, isDecline} }
   showAnalysis: false,   // 目前這題是否已顯示解析
   feedback: '',
@@ -59,7 +63,9 @@ function render() {
     case 'consent': view = renderConsent(); break;
     case 'declined': view = renderDeclined(); break;
     case 'warmup': view = renderWarmup(); break;
+    case 'unitSelect': view = renderUnitSelect(); break;
     case 'quiz': view = renderQuiz(); break;
+    case 'continue': view = renderContinue(); break;
     case 'finish': view = renderFinish(); break;
     default: view = renderHome();
   }
@@ -183,8 +189,8 @@ function renderWarmup() {
 
   const next = el('button', {
     class: 'btn btn-primary full',
-    onclick: () => { state.screen = 'quiz'; state.index = 0; state.showAnalysis = !!state.answers['Q01']; render(); }
-  }, '進入 Part 1');
+    onclick: () => { state.screen = 'unitSelect'; render(); }
+  }, '選擇想體驗的單元');
   next.disabled = !state.mood;
   wrap.appendChild(next);
   if (!state.mood) wrap.appendChild(el('p', { class: 'hint' }, '請先選擇一個選項（也可以選「拒答／不想回答」）。'));
@@ -192,18 +198,119 @@ function renderWarmup() {
 }
 
 /* ------------------------------------------------------------
+   4. 單元選擇頁：可複選
+------------------------------------------------------------- */
+const UNIT_OPTIONS = [
+  { key: '感情', label: '感情', emoji: '💛' },
+  { key: '家庭', label: '家庭', emoji: '🏠' },
+  { key: '同儕', label: '同儕', emoji: '🤝' },
+  { key: '學業', label: '學業', emoji: '📚' }
+];
+
+function renderUnitSelect() {
+  const wrap = el('div', { class: 'screen' });
+  wrap.appendChild(el('button', { class: 'back-link', onclick: () => { state.screen = 'warmup'; render(); } }, '← 上一步'));
+  wrap.appendChild(el('h2', { class: 'page-title' }, '選擇想體驗的單元'));
+  wrap.appendChild(el('p', { class: 'lead' }, '可以複選。每個單元完成後，還可以決定要不要繼續。'));
+
+  const grid = el('div', { class: 'mood-grid' });
+  UNIT_OPTIONS.forEach(unit => {
+    const selected = state.selectedUnits.includes(unit.key);
+    const completed = state.completedUnits.includes(unit.key);
+    const card = el('button', {
+      class: 'mood-card' + (selected ? ' selected' : ''),
+      'aria-pressed': selected ? 'true' : 'false',
+      onclick: () => {
+        if (completed) return;
+        if (state.selectedUnits.includes(unit.key)) {
+          state.selectedUnits = state.selectedUnits.filter(x => x !== unit.key);
+        } else {
+          state.selectedUnits = [...state.selectedUnits, unit.key];
+        }
+        render();
+      }
+    }, [
+      el('span', { class: 'mood-emoji' }, unit.emoji),
+      el('span', { class: 'mood-text' }, completed ? `${unit.label}（已完成）` : unit.label)
+    ]);
+    if (completed) card.disabled = true;
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+
+  const start = el('button', {
+    class: 'btn btn-primary full',
+    onclick: startSelectedUnits
+  }, state.completedUnits.length ? '開始其他單元' : '開始體驗');
+  start.disabled = !state.selectedUnits.some(x => !state.completedUnits.includes(x));
+  wrap.appendChild(start);
+  if (!state.selectedUnits.some(x => !state.completedUnits.includes(x))) {
+    wrap.appendChild(el('p', { class: 'hint' }, '請至少選擇一個尚未完成的單元。'));
+  }
+  return wrap;
+}
+
+function startSelectedUnits() {
+  const units = state.selectedUnits.filter(x => !state.completedUnits.includes(x));
+  state.questionIds = units.flatMap(unit => QUESTIONS
+    .filter(q => q.category === unit)
+    .sort((a, b) => a.part - b.part)
+    .map(q => q.id));
+  state.index = 0;
+  state.showAnalysis = !!state.answers[state.questionIds[0]];
+  state.screen = 'quiz';
+  render();
+}
+
+function currentQuestion() {
+  return QUESTIONS.find(q => q.id === state.questionIds[state.index]);
+}
+
+function isUnitEnd() {
+  const q = currentQuestion();
+  const next = QUESTIONS.find(x => x.id === state.questionIds[state.index + 1]);
+  return !next || next.category !== q.category;
+}
+
+function renderContinue() {
+  const wrap = el('div', { class: 'screen center-screen' });
+  wrap.appendChild(el('div', { class: 'hero-emoji' }, '🌱'));
+  wrap.appendChild(el('h2', { class: 'page-title' }, `${state.lastCompletedUnit}單元完成`));
+  wrap.appendChild(el('p', { class: 'lead' }, '你想繼續體驗其他單元嗎？'));
+
+  const nextExists = state.index + 1 < state.questionIds.length;
+  if (nextExists) {
+    wrap.appendChild(el('button', {
+      class: 'btn btn-primary full',
+      onclick: () => { state.index++; state.showAnalysis = !!state.answers[state.questionIds[state.index]]; state.screen = 'quiz'; render(); }
+    }, '繼續下一個已選單元'));
+  }
+
+  wrap.appendChild(el('button', {
+    class: 'btn btn-ghost full',
+    onclick: () => { state.screen = 'finish'; render(); }
+  }, '不要繼續，直接送出'));
+
+  wrap.appendChild(el('button', {
+    class: 'btn btn-ghost full',
+    onclick: () => { state.screen = 'unitSelect'; render(); }
+  }, '選擇其他單元'));
+  return wrap;
+}
+
+/* ------------------------------------------------------------
    4-5. 題目頁（Part 1 / Part 2 共用）
 ------------------------------------------------------------- */
 function renderQuiz() {
-  const q = QUESTIONS[state.index];
+  const q = currentQuestion();
   const answer = state.answers[q.id];
   const wrap = el('div', { class: 'screen' });
 
   // 進度
-  const pct = Math.round(((state.index + 1) / QUESTIONS.length) * 100);
+  const pct = Math.round(((state.index + 1) / state.questionIds.length) * 100);
   wrap.appendChild(el('div', { class: 'progress-head' }, [
     el('span', { class: 'part-chip' }, q.part === 1 ? 'Part 1' : 'Part 2'),
-    el('span', { class: 'progress-num' }, `第 ${state.index + 1} 題／共 ${QUESTIONS.length} 題`)
+    el('span', { class: 'progress-num' }, `第 ${state.index + 1} 題／共 ${state.questionIds.length} 題`)
   ]));
   wrap.appendChild(el('div', { class: 'bar-track' }, [el('div', { class: 'bar-fill', style: `width:${pct}%` })]));
 
@@ -264,24 +371,26 @@ function chooseOption(q, o) {
 function goPrev() {
   if (state.index > 0) {
     state.index--;
-    state.showAnalysis = !!state.answers[QUESTIONS[state.index].id];
+    state.showAnalysis = !!state.answers[state.questionIds[state.index]];
     render();
   } else {
-    state.screen = 'warmup';
+    state.screen = 'unitSelect';
     render();
   }
 }
 
 function goNext() {
-  const q = QUESTIONS[state.index];
+  const q = currentQuestion();
   if (!state.answers[q.id]) return;
-  if (state.index === QUESTIONS.length - 1) {
-    state.screen = 'finish';
+  if (isUnitEnd()) {
+    if (!state.completedUnits.includes(q.category)) state.completedUnits.push(q.category);
+    state.lastCompletedUnit = q.category;
+    state.screen = 'continue';
     render();
     return;
   }
   state.index++;
-  state.showAnalysis = !!state.answers[QUESTIONS[state.index].id];
+  state.showAnalysis = !!state.answers[state.questionIds[state.index]];
   render();
 }
 
@@ -300,6 +409,27 @@ function renderAnalysis(q, answer) {
     return box;
   }
 
+  // Part 2 是反思，不重複 Part 1 的四層解析，只顯示前後答案與一段短提醒。
+  if (q.part === 2) {
+    const part1 = QUESTIONS.find(x => x.sourceId === q.sourceId.replace('-P2', '-P1'));
+    const part1Answer = part1 ? state.answers[part1.id] : null;
+    const changed = part1Answer && part1Answer.code !== answer.code;
+    box.appendChild(el('div', { class: 'analysis-head' }, [
+      el('span', { class: 'analysis-badge' }, '角色反思'),
+      el('span', { class: 'analysis-choice' }, `你選了 ${answer.code}`)
+    ]));
+    if (part1Answer) {
+      box.appendChild(layer('回頭看看 Part 1', [
+        el('p', {}, `Part 1 你選的是：${part1Answer.code}｜${part1Answer.text}`),
+        el('p', { class: 'sub' }, changed ? '換個角色後，你的選擇出現變化。這可能代表你注意到不同位置的感受。' : '換個角色後，你的選擇沒有改變。你在兩個位置看見了相近的感受。')
+      ]));
+    }
+    box.appendChild(layer('這次反思可以帶走什麼？', [
+      el('p', {}, shortText(q.reflection, 150))
+    ]));
+    return box;
+  }
+
   const tpl = CATEGORY_TEMPLATES[REACTION_CATEGORY_MAP[answer.reactionType]] || CATEGORY_TEMPLATES.SEEK_UNDERSTANDING;
   const custom = q.customSelf && q.customSelf[answer.code];
 
@@ -310,31 +440,23 @@ function renderAnalysis(q, answer) {
 
   box.appendChild(layer('第一層｜我的選擇可能代表什麼？', [
     el('span', { class: 'tendency' }, tpl.label),
-    el('p', {}, custom ? custom : tpl.self)
+    el('p', {}, shortText(custom ? custom : tpl.self, 120))
   ]));
 
-  box.appendChild(layer('第二層｜對方可能感受到什麼？', [el('p', {}, tpl.other)]));
+  box.appendChild(layer('第二層｜對方可能感受到什麼？', [el('p', {}, shortText(tpl.other, 100))]));
 
   box.appendChild(layer('第三層｜還有沒有其他說法？', [
-    el('p', { class: 'sub' }, '以下是可以參考的說法之一，不是唯一正確答案：'),
-    el('ul', {}, tpl.alt.map(a => el('li', {}, `「${a}」`)))
+    el('p', { class: 'sub' }, `例如：「${shortText(tpl.alt[0], 70)}」`)
   ]));
 
   box.appendChild(layer('第四層｜我想成為怎樣的人？', [
-    el('p', { class: 'sub' }, '如果重新來一次，我希望自己怎麼回？選擇權在你自己：'),
-    el('ul', {}, LAYER_FOUR_PROMPTS.map(p => el('li', {}, p)))
+    el('p', { class: 'sub' }, '如果重新來一次，我希望自己怎麼回？')
   ]));
 
   box.appendChild(el('div', { class: 'quote' }, [
     el('span', {}, '💭'),
-    el('p', {}, q.reflection)
+    el('p', {}, shortText(q.reflection, 150))
   ]));
-
-  if (q.part === 2) {
-    box.appendChild(layer('角色交換，也可以想想看', [
-      el('ul', {}, ROLE_SWAP_PROMPTS.map(p => el('li', {}, p)))
-    ]));
-  }
 
   if (q.safetyFlag) {
     box.appendChild(el('div', { class: 'safety' }, [
@@ -343,6 +465,11 @@ function renderAnalysis(q, answer) {
     ]));
   }
   return box;
+}
+
+function shortText(text, max = 120) {
+  const value = String(text || '').replace(/\s+/g, ' ').trim();
+  return value.length > max ? value.slice(0, max) + '…' : value;
 }
 
 function layer(title, children) {
@@ -368,7 +495,7 @@ function renderFinish() {
     return wrap;
   }
 
-  wrap.appendChild(el('button', { class: 'back-link', onclick: () => { state.screen = 'quiz'; state.index = QUESTIONS.length - 1; state.showAnalysis = true; render(); } }, '← 回上一題'));
+  wrap.appendChild(el('button', { class: 'back-link', onclick: () => { state.screen = 'quiz'; state.index = state.questionIds.length - 1; state.showAnalysis = true; render(); } }, '← 回上一題'));
   wrap.appendChild(el('h2', { class: 'page-title' }, '最後一個小問題'));
   wrap.appendChild(el('p', { class: 'lead' }, '今天有沒有哪個想法讓你感到意外？'));
   wrap.appendChild(el('p', { class: 'sub' }, '這一題可以留白，也可以選擇不回答。'));
@@ -425,12 +552,20 @@ function buildPayload() {
     submitted_at: new Date().toISOString(),
     consent: state.consent || '',
     mood: state.mood || '',
+    selected_units: state.selectedUnits.join('、'),
     final_feedback: state.feedbackDeclined ? '我不想回答' : (state.feedback || '').trim(),
     user_agent_optional: navigator.userAgent || ''
   };
   QUESTIONS.forEach(q => {
     const a = state.answers[q.id];
-    payload[q.id] = a ? (a.isDecline ? '拒答／不想回答' : `${a.code}｜${a.text}`) : '';
+    // 未選到的單元或跳過的題目，一律記錄為拒答，避免試算表留下空白。
+    payload[q.id] = a ? (a.isDecline ? 'E｜拒答／不想回答' : `${a.code}｜${a.text}`) : 'E｜拒答／不想回答';
+    if (q.part === 2) {
+      const p1 = QUESTIONS.find(x => x.sourceId === q.sourceId.replace('-P2', '-P1'));
+      const p1Answer = p1 ? state.answers[p1.id] : null;
+      payload[`part1_for_${q.id}`] = p1Answer ? p1Answer.code : 'E';
+      payload[`changed_${q.id}`] = p1Answer && a ? (p1Answer.code !== a.code ? '是' : '否') : '未完成';
+    }
   });
   return payload;
 }
@@ -471,6 +606,10 @@ function resetAll() {
   state.consent = null;
   state.mood = null;
   state.index = 0;
+  state.questionIds = [];
+  state.selectedUnits = [];
+  state.completedUnits = [];
+  state.lastCompletedUnit = null;
   state.answers = {};
   state.showAnalysis = false;
   state.feedback = '';
@@ -488,7 +627,7 @@ function resetAll() {
 document.addEventListener('keydown', e => {
   if (state.screen !== 'quiz') return;
   const map = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
-  const q = QUESTIONS[state.index];
+  const q = currentQuestion();
   if (map[e.key]) {
     const o = q.options.find(x => x.code === map[e.key]);
     if (o) chooseOption(q, o);

@@ -516,8 +516,12 @@ const QUESTIONS = RAW_QUESTIONS.map(q => ({
 
 /* ---------- 送出至試算表的欄位順序 ---------- */
 const SHEET_FIELDS = [
-  "response_id", "submitted_at", "consent", "mood",
+  "response_id", "submitted_at", "consent", "mood", "selected_units",
   "Q01", "Q02", "Q03", "Q04", "Q05", "Q06", "Q07", "Q08", "Q09", "Q10", "Q11",
   "Q12", "Q13", "Q14", "Q15", "Q16", "Q17", "Q18", "Q19", "Q20", "Q21", "Q22",
+  "part1_for_Q14", "part1_for_Q15", "part1_for_Q16", "part1_for_Q17", "part1_for_Q18",
+  "part1_for_Q19", "part1_for_Q20", "part1_for_Q21", "part1_for_Q22",
+  "changed_Q14", "changed_Q15", "changed_Q16", "changed_Q17", "changed_Q18",
+  "changed_Q19", "changed_Q20", "changed_Q21", "changed_Q22",
   "final_feedback", "user_agent_optional"
 ];
