@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="原來我是這樣的人｜16 種互動風格趣味探索" />
+  <title>原來我是這樣的人｜互動風格探索</title>
+  <style>
+    :root { --ink:#263238; --muted:#667085; --line:#e6e8ec; --primary:#637b9b; --soft:#f5f8fb; --warm:#fff8ef; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#f8f7f4; color:var(--ink); font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif; line-height:1.7; }
+    .page { width:min(900px,calc(100% - 24px)); margin:auto; padding:24px 0 56px; }
+    .hero,.panel { background:#fff; border:1px solid var(--line); border-radius:22px; padding:24px; box-shadow:0 8px 28px rgba(38,50,56,.05); }
+    .hero { text-align:center; margin-bottom:16px; }
+    .emoji { font-size:42px; }
+    h1 { margin:6px 0; font-size:clamp(25px,6vw,38px); line-height:1.3; }
+    h2 { margin:0 0 8px; font-size:clamp(21px,5vw,27px); }
+    h3 { margin:0 0 4px; font-size:18px; }
+    p { margin:8px 0; }
+    .sub,.small { color:var(--muted); }
+    .notice { margin-top:16px; padding:14px 16px; text-align:left; border-radius:14px; background:var(--warm); border:1px solid #f1dcc4; font-size:14px; }
+    .type-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:10px; margin-top:18px; }
+    .type-card { min-height:104px; border:1px solid var(--line); background:#fff; border-radius:16px; padding:13px 8px; cursor:pointer; text-align:center; font:inherit; color:inherit; transition:.15s; }
+    .type-card:hover,.type-card:focus-visible { border-color:var(--primary); transform:translateY(-1px); outline:none; }
+    .type-card.selected { border:2px solid var(--primary); background:var(--soft); padding:12px 7px; }
+    .type-code { display:block; font-size:19px; font-weight:750; color:var(--primary); }
+    .animal { display:block; color:#9a7359; font-size:14px; }
+    .result { display:none; margin-top:22px; }
+    .result.show { display:block; }
+    .result-head { display:flex; gap:14px; align-items:center; padding:15px; background:var(--soft); border-radius:16px; margin-bottom:14px; }
+    .result-animal { font-size:38px; min-width:48px; }
+    .scenario { border-top:1px solid var(--line); padding:15px 0 5px; }
+    .scenario:first-of-type { border-top:0; }
+    .scenario-title { font-weight:700; }
+    .scenario-text { color:#4b5563; font-size:15px; }
+    .back { display:inline-block; margin-bottom:14px; color:var(--primary); text-decoration:none; }
+    .exit { display:inline-block; margin-top:20px; color:var(--primary); }
+    @media (max-width:560px) { .page { padding-top:14px; } .hero,.panel { padding:18px; border-radius:18px; } .result-head { align-items:flex-start; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <a class="back" href="index.html">← 回到問卷首頁</a>
+    <section class="hero">
+      <div class="emoji">🧭</div>
+      <h1>原來我是這樣的人</h1>
+      <p class="sub">16 種互動風格趣味探索</p>
+      <div class="notice">
+        <strong>請先知道：</strong><br>
+        本頁不是正式 MBTI® 測驗，也不是心理診斷、人格判定或專業評估。
+        內容僅參考 16 種人格類型的常見描述，並搭配本活動的人際情境做自我觀察。
+        沒有哪一型比較好，也不代表你在所有情況下都會這樣反應。
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>請選一個你想了解的類型</h2>
+      <p class="sub">可以選擇你曾經測過的結果，也可以選一個目前覺得比較接近的類型。不想選也可以直接離開。</p>
+      <div id="typeGrid" class="type-grid"></div>
+      <div id="result" class="result" aria-live="polite">
+        <div class="result-head">
+          <div id="resultAnimal" class="result-animal"></div>
+          <div><h2 id="resultTitle"></h2><p id="resultIntro" class="sub"></p></div>
+        </div>
+        <p class="small">以下是把前面問卷的人際情境整理成的簡短摘要，只供反思參考。</p>
+        <div id="scenarios"></div>
+      </div>
+      <a class="exit" href="index.html">完成探索，回到問卷首頁</a>
+    </section>
+  </main>
+
+  <script>
+    const TYPES = [
+      ['INTJ','🦉 貓頭鷹','分析觀察型','可能先觀察情況、找出原因，再決定如何回應。',['可能先判斷對方是否在忙，不急著下結論。','傾向找出問題核心，希望把事情釐清。','可能用事實與邏輯減少雙方猜測。','可能認為喜歡與交出隱私是兩回事。']],
+      ['INTP','🐱 貓','思考拆解型','可能把事情拆開分析，想了解背後原因與邏輯。',['可能分析平常回覆狀況，思考今天為什麼不同。','會先了解事情本身，想知道哪裡出了問題。','可能追問誤會從哪裡開始。','可能認為喜歡與證明是兩件事。']],
+      ['ENTJ','🦁 獅子','果斷處理型','可能重視效率與清楚界線，傾向直接面對問題。',['可能先做自己的事，不讓訊息打亂節奏。','傾向直接問清楚，盡快找到處理方式。','可能直接說明事實，不喜歡一直猜測。','可能清楚表達信任不是靠檢查手機建立的。']],
+      ['ENTP','🦊 狐狸','靈活辯證型','可能想到多種可能，透過討論重新理解事情。',['可能想到很多原因，不急著認定答案。','喜歡把問題拿出來討論，但也要留意語氣。','可能想了解對方為何會這樣想。','可能反問為什麼要用檢查來證明喜歡。']],
+      ['INFJ','🦌 鹿','深度理解型','可能先思考彼此感受，再決定怎麼回應。',['可能反覆想是不是自己做錯，或對方發生了什麼。','可能先整理情緒，再理解對方感受。','會想知道對方為何形成這個理解。','可能在乎對方，也希望保有自己的隱私。']],
+      ['INFP','🦦 水獺','感受連結型','可能重視關係中的感受，也需要時間整理情緒。',['可能因關係變化而難過，開始懷疑對方的想法。','很在意彼此感受，可能先消化再溝通。','可能因本意沒有被理解而受傷。','可能覺得真正的喜歡不需要一直證明。']],
+      ['ENFJ','🐬 海豚','關係修復型','可能主動關心對方，也重視把關係帶回理解。',['可能先關心對方是不是發生了什麼。','傾向主動溝通，希望彼此理解並修復。','可能先理解對方，再說明自己的想法。','願意表達感情，也重視慢慢建立信任。']],
+      ['ENFP','🐕 黃金獵犬','熱情連結型','可能很快注意到關係變化，希望彼此重新連結。',['可能想到很多可能，也猶豫要不要主動關心。','情緒過後，通常仍希望修復關係。','可能想知道對方的想法，重新建立連結。','可能表達在乎，也希望對方願意相信自己。']],
+      ['ISTJ','🐘 大象','穩定務實型','可能依照實際情況判斷，不希望事情停留在猜測。',['可能先認為對方只是忙，選擇再等等。','想把具體是哪件事說清楚。','可能直接說明自己沒有那個意思。','可能覺得喜歡不需要靠檢查手機證明。']],
+      ['ISFJ','🐼 貓熊','細膩照顧型','可能很注意對方感受，也容易回頭檢查自己是否做錯。',['可能先想是不是自己讓對方不開心。','可能反覆想自己是否說錯話，希望趕快和好。','可能主動解釋，不希望朋友因誤會難過。','可能為讓對方安心而配合，也要留意自己的壓力。']],
+      ['ESTJ','🐯 老虎','明確行動型','可能希望事情快點說清楚、做決定。',['可能先做自己的事，有需要再直接問。','想知道怎麼解決，不喜歡問題拖太久。','可能直接把事情經過說清楚。','可能表達在乎，但不接受不舒服的要求。']],
+      ['ESFJ','🐝 蜜蜂','關係照顧型','可能很在意氣氛與彼此感受，希望關係恢復平穩。',['可能擔心對方是不是不開心，想主動關心。','希望大家把話說開，讓關係回到平穩。','可能先顧慮對方，再說明自己。','可能願意給安全感，也要確認自己是否有壓力。']],
+      ['ISTP','🐺 狼','冷靜自主型','可能先保留自己的空間，等需要時再直接處理。',['可能先認為對方在忙，晚一點再看。','傾向直接說有問題就講，不喜歡一直猜。','可能直接說明發生什麼，不繞太多圈。','可能清楚表達喜歡與查看手機是兩回事。']],
+      ['ISFP','🐿️ 松鼠','溫和感受型','可能先把感受放在心裡，等情緒過後再決定要不要說。',['表面可能裝沒事，但心裡仍會有些失落。','可能先離開現場，等平靜後再說。','可能因本意被誤解而感到受傷。','可能不想傷害對方而配合，也要照顧自己的感受。']],
+      ['ESTP','🐆 獵豹','直接反應型','可能重視當下感受，傾向直接問、直接處理。',['可能先做自己的事，晚點直接問清楚。','傾向直接問到底怎麼了。','可能很快解釋自己的想法。','可能表達在乎，也保留個人空間。']],
+      ['ESFP','🦚 孔雀','氣氛感受型','可能很快注意到氣氛與他人反應，希望關係不要留下尷尬。',['可能擔心對方是不是怎麼了，想主動問問看。','很在意朋友是否還在生氣，希望快點和好。','可能很在意別人怎麼看自己，急著解釋。','可能為讓對方安心而配合，也可以確認自己的意願。']]
+    ].map(([code,animal,title,intro,items]) => ({code,animal,title,intro,items}));
+
+    const grid = document.getElementById('typeGrid');
+    const result = document.getElementById('result');
+    const resultAnimal = document.getElementById('resultAnimal');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultIntro = document.getElementById('resultIntro');
+    const scenarios = document.getElementById('scenarios');
+    const labels = ['❤️ 喜歡的人沒有馬上回訊息','🤝 跟朋友出現誤會或衝突','🪞 站到對方的位置思考','🔒 被要求證明自己在乎'];
+
+    TYPES.forEach(type => {
+      const button = document.createElement('button');
+      button.className = 'type-card';
+      button.innerHTML = `<span class="type-code">${type.code}</span><span>${type.title}</span><span class="animal">${type.animal}</span>`;
+      button.addEventListener('click', () => showType(type, button));
+      grid.appendChild(button);
+    });
+
+    function showType(type, button) {
+      document.querySelectorAll('.type-card').forEach(card => card.classList.remove('selected'));
+      button.classList.add('selected');
+      result.classList.add('show');
+      resultAnimal.textContent = type.animal;
+      resultTitle.textContent = `${type.code}｜${type.title}`;
+      resultIntro.textContent = type.intro;
+      scenarios.replaceChildren(...type.items.map((text, i) => {
+        const article = document.createElement('article');
+        article.className = 'scenario';
+        const title = document.createElement('div');
+        title.className = 'scenario-title';
+        title.textContent = labels[i];
+        const body = document.createElement('div');
+        body.className = 'scenario-text';
+        body.textContent = text;
+        article.append(title, body);
+        return article;
+      }));
+      result.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  </script>
+</body>
+</html>

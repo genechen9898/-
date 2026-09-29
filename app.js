@@ -491,6 +491,11 @@ function renderFinish() {
     wrap.appendChild(el('h2', { class: 'page-title' }, '謝謝你的參與'));
     wrap.appendChild(el('div', { class: 'sent-ok' }, '✓ 資料已成功送出'));
     wrap.appendChild(el('p', { class: 'lead' }, '你的選擇不代表你是怎樣的人，只代表你在某個情境下可能出現的一種反應。'));
+    wrap.appendChild(el('a', {
+      class: 'btn btn-primary full',
+      href: 'mbti.html'
+    }, '加碼探索：看看我的互動風格'));
+    wrap.appendChild(el('p', { class: 'foot-note' }, '這是自願參加的趣味探索，不是正式 MBTI 測驗，也不會影響剛才的問卷。'));
     wrap.appendChild(el('button', { class: 'btn btn-ghost', onclick: resetAll }, '換下一位參與者'));
     return wrap;
   }
