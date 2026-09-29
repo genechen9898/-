@@ -11,7 +11,7 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvSEREpRzyjY
    狀態
 ------------------------------------------------------------- */
 const state = {
-  screen: 'home',        // home | consent | declined | warmup | unitSelect | quiz | continue | finish
+  screen: 'home',        // home | consent | declined | warmup | unitSelect | quiz | continue | finish | personality
   consent: null,         // '同意' | '不同意'
   mood: null,
   index: 0,              // 目前目前單元題目 index
@@ -67,6 +67,7 @@ function render() {
     case 'quiz': view = renderQuiz(); break;
     case 'continue': view = renderContinue(); break;
     case 'finish': view = renderFinish(); break;
+    case 'personality': view = renderPersonality(); break;
     default: view = renderHome();
   }
   root.appendChild(view);
@@ -491,9 +492,9 @@ function renderFinish() {
     wrap.appendChild(el('h2', { class: 'page-title' }, '謝謝你的參與'));
     wrap.appendChild(el('div', { class: 'sent-ok' }, '✓ 資料已成功送出'));
     wrap.appendChild(el('p', { class: 'lead' }, '你的選擇不代表你是怎樣的人，只代表你在某個情境下可能出現的一種反應。'));
-    wrap.appendChild(el('a', {
+    wrap.appendChild(el('button', {
       class: 'btn btn-primary full',
-      href: 'mbti.html'
+      onclick: () => { state.screen = 'personality'; render(); }
     }, '加碼探索：看看我的互動風格'));
     wrap.appendChild(el('p', { class: 'foot-note' }, '這是自願參加的趣味探索，不是正式 MBTI 測驗，也不會影響剛才的問卷。'));
     wrap.appendChild(el('button', { class: 'btn btn-ghost', onclick: resetAll }, '換下一位參與者'));
@@ -544,6 +545,95 @@ function renderFinish() {
   wrap.appendChild(submit);
 
   wrap.appendChild(el('p', { class: 'foot-note' }, '送出的資料為匿名紀錄，不包含任何可辨識身分的資訊。'));
+  return wrap;
+}
+
+/* ------------------------------------------------------------
+   7. 加碼探索：16 種互動風格與動物象徵
+   ------------------------------------------------------------
+   這不是正式 MBTI 測驗，只讓參與者自行選擇一個參考類型。
+------------------------------------------------------------- */
+const PERSONALITY_TYPES = [
+  { code: 'INTJ', animal: '🦉 貓頭鷹', title: '分析觀察型', intro: '可能先觀察情況、找出原因，再決定如何回應。', items: ['可能先判斷對方是否在忙，不急著下結論。', '傾向找出問題核心，希望把事情釐清。', '可能用事實與邏輯減少雙方猜測。', '可能認為喜歡與交出隱私是兩回事。'] },
+  { code: 'INTP', animal: '🐱 貓', title: '思考拆解型', intro: '可能把事情拆開分析，想了解背後原因與邏輯。', items: ['可能分析平常回覆狀況，思考今天為什麼不同。', '會先了解事情本身，想知道哪裡出了問題。', '可能追問誤會從哪裡開始。', '可能認為喜歡與證明是兩件事。'] },
+  { code: 'ENTJ', animal: '🦁 獅子', title: '果斷處理型', intro: '可能重視效率與清楚界線，傾向直接面對問題。', items: ['可能先做自己的事，不讓訊息打亂節奏。', '傾向直接問清楚，盡快找到處理方式。', '可能直接說明事實，不喜歡一直猜測。', '可能清楚表達信任不是靠檢查手機建立的。'] },
+  { code: 'ENTP', animal: '🦊 狐狸', title: '靈活辯證型', intro: '可能想到多種可能，透過討論重新理解事情。', items: ['可能想到很多原因，不急著認定答案。', '喜歡把問題拿出來討論，但也要留意語氣。', '可能想了解對方為何會這樣想。', '可能反問為什麼要用檢查來證明喜歡。'] },
+  { code: 'INFJ', animal: '🦌 鹿', title: '深度理解型', intro: '可能先思考彼此感受，再決定怎麼回應。', items: ['可能反覆想是不是自己做錯，或對方發生了什麼。', '可能先整理情緒，再理解對方感受。', '會想知道對方為何形成這個理解。', '可能在乎對方，也希望保有自己的隱私。'] },
+  { code: 'INFP', animal: '🦦 水獺', title: '感受連結型', intro: '可能重視關係中的感受，也需要時間整理情緒。', items: ['可能因關係變化而難過，開始懷疑對方的想法。', '很在意彼此感受，可能先消化再溝通。', '可能因本意沒有被理解而受傷。', '可能覺得真正的喜歡不需要一直證明。'] },
+  { code: 'ENFJ', animal: '🐬 海豚', title: '關係修復型', intro: '可能主動關心對方，也重視把關係帶回理解。', items: ['可能先關心對方是不是發生了什麼。', '傾向主動溝通，希望彼此理解並修復。', '可能先理解對方，再說明自己的想法。', '願意表達感情，也重視慢慢建立信任。'] },
+  { code: 'ENFP', animal: '🐕 黃金獵犬', title: '熱情連結型', intro: '可能很快注意到關係變化，希望彼此重新連結。', items: ['可能想到很多可能，也猶豫要不要主動關心。', '情緒過後，通常仍希望修復關係。', '可能想知道對方的想法，重新建立連結。', '可能表達在乎，也希望對方願意相信自己。'] },
+  { code: 'ISTJ', animal: '🐘 大象', title: '穩定務實型', intro: '可能依照實際情況判斷，不希望事情停留在猜測。', items: ['可能先認為對方只是忙，選擇再等等。', '想把具體是哪件事說清楚。', '可能直接說明自己沒有那個意思。', '可能覺得喜歡不需要靠檢查手機證明。'] },
+  { code: 'ISFJ', animal: '🐼 貓熊', title: '細膩照顧型', intro: '可能很注意對方感受，也容易回頭檢查自己是否做錯。', items: ['可能先想是不是自己讓對方不開心。', '可能反覆想自己是否說錯話，希望趕快和好。', '可能主動解釋，不希望朋友因誤會難過。', '可能為讓對方安心而配合，也要留意自己的壓力。'] },
+  { code: 'ESTJ', animal: '🐯 老虎', title: '明確行動型', intro: '可能希望事情快點說清楚、做決定。', items: ['可能先做自己的事，有需要再直接問。', '想知道怎麼解決，不喜歡問題拖太久。', '可能直接把事情經過說清楚。', '可能表達在乎，但不接受不舒服的要求。'] },
+  { code: 'ESFJ', animal: '🐝 蜜蜂', title: '關係照顧型', intro: '可能很在意氣氛與彼此感受，希望關係恢復平穩。', items: ['可能擔心對方是不是不開心，想主動關心。', '希望大家把話說開，讓關係回到平穩。', '可能先顧慮對方，再說明自己。', '可能願意給安全感，也要確認自己是否有壓力。'] },
+  { code: 'ISTP', animal: '🐺 狼', title: '冷靜自主型', intro: '可能先保留自己的空間，等需要時再直接處理。', items: ['可能先認為對方在忙，晚一點再看。', '傾向直接說有問題就講，不喜歡一直猜。', '可能直接說明發生什麼，不繞太多圈。', '可能清楚表達喜歡與查看手機是兩回事。'] },
+  { code: 'ISFP', animal: '🐿️ 松鼠', title: '溫和感受型', intro: '可能先把感受放在心裡，等情緒過後再決定要不要說。', items: ['表面可能裝沒事，但心裡仍會有些失落。', '可能先離開現場，等平靜後再說。', '可能因本意被誤解而感到受傷。', '可能不想傷害對方而配合，也要照顧自己的感受。'] },
+  { code: 'ESTP', animal: '🐆 獵豹', title: '直接反應型', intro: '可能重視當下感受，傾向直接問、直接處理。', items: ['可能先做自己的事，晚點直接問清楚。', '傾向直接問到底怎麼了。', '可能很快解釋自己的想法。', '可能表達在乎，也保留個人空間。'] },
+  { code: 'ESFP', animal: '🦚 孔雀', title: '氣氛感受型', intro: '可能很快注意到氣氛與他人反應，希望關係不要留下尷尬。', items: ['可能擔心對方是不是怎麼了，想主動問問看。', '很在意朋友是否還在生氣，希望快點和好。', '可能很在意別人怎麼看自己，急著解釋。', '可能為讓對方安心而配合，也可以確認自己的意願。'] }
+];
+
+function renderPersonality() {
+  const wrap = el('div', { class: 'screen' });
+  wrap.appendChild(el('button', {
+    class: 'back-link',
+    onclick: () => { state.screen = 'finish'; render(); }
+  }, '← 回到完成頁'));
+
+  wrap.appendChild(el('div', { class: 'hero' }, [
+    el('div', { class: 'hero-emoji' }, '🧭'),
+    el('h2', { class: 'page-title' }, '原來我是這樣的人'),
+    el('p', { class: 'lead' }, '16 種互動風格與動物象徵'),
+    el('div', { class: 'consent-box' }, [
+      el('p', {}, '這不是正式 MBTI 測驗，也不是心理診斷或人格判定。'),
+      el('p', {}, '請選一個你曾經測過，或覺得比較接近自己的類型，看看它在前面人際情境中可能呈現的互動風格。'),
+      el('p', {}, '沒有哪一型比較好，也不代表你每次都會有相同反應。')
+    ])
+  ]));
+
+  wrap.appendChild(el('h3', {}, '請選擇一個類型'));
+  wrap.appendChild(el('p', { class: 'sub' }, '這是自願的加碼探索，不想選也可以直接結束。'));
+
+  const grid = el('div', { class: 'mood-grid' });
+  const result = el('div', { class: 'analysis', style: 'display:none' });
+
+  PERSONALITY_TYPES.forEach(type => {
+    const card = el('button', {
+      class: 'mood-card',
+      onclick: () => {
+        grid.querySelectorAll('.mood-card').forEach(x => x.classList.remove('selected'));
+        card.classList.add('selected');
+        result.style.display = 'block';
+        result.innerHTML = '';
+        result.appendChild(el('div', { class: 'analysis-head' }, [
+          el('span', { class: 'analysis-badge' }, `${type.animal}`),
+          el('span', { class: 'analysis-choice' }, `${type.code}｜${type.title}`)
+        ]));
+        result.appendChild(el('p', {}, type.intro));
+        const labels = ['喜歡的人沒有馬上回訊息', '跟朋友出現誤會或衝突', '站到對方的位置思考', '被要求證明自己在乎'];
+        type.items.forEach((text, i) => {
+          result.appendChild(layer(`${labels[i]}：`, [el('p', {}, text)]));
+        });
+        result.appendChild(el('div', { class: 'quote' }, [
+          el('span', {}, '💭'),
+          el('p', {}, '這只是本次活動提供的一種觀察角度。你可以保留符合自己的部分，也可以對不符合的地方保持好奇。')
+        ]));
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, [
+      el('span', { class: 'mood-emoji' }, type.animal.split(' ')[0]),
+      el('span', { class: 'mood-text' }, `${type.code}｜${type.title}`),
+      el('span', { class: 'sub' }, type.animal.slice(type.animal.indexOf(' ') + 1))
+    ]);
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+  wrap.appendChild(result);
+  wrap.appendChild(el('button', {
+    class: 'btn btn-ghost full',
+    onclick: resetAll
+  }, '結束並回到首頁'));
+
   return wrap;
 }
 
