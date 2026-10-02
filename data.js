@@ -2,8 +2,8 @@
    青少年情緒 × 人際互動探索問卷 — 題庫資料
    ------------------------------------------------------------
    內容規則：
-   - 題目、情境、選項 A~D 的文字與順序，皆為定稿內容，未經改寫。
-   - 唯一新增的是每題最後的「E. 拒答／不想回答」。
+   - 題目保留原本情境，選項與解析採中性、描述行為與感受的文字。
+   - 每題最後附加「E. 拒答／不想回答」，不納入反應類型分析。
    - 拒答選項不參與任何反應類型分析。
    ============================================================ */
 
@@ -51,7 +51,7 @@ const REACTION_CATEGORY_MAP = {
   "焦慮退縮": "SELF_DOUBT",
   "說明界線": "SELF_PROTECT",
   "忍耐型": "ACCOMMODATE",
-  "反擊型": "CONFRONT",
+  "直接表達不滿": "CONFRONT",
   "表達感受型": "SEEK_UNDERSTANDING",
   "離開現場型": "AVOID_CONFLICT",
   "停止比較但缺少理解": "DISMISS",
@@ -61,22 +61,22 @@ const REACTION_CATEGORY_MAP = {
   "清楚表達與承擔責任": "AUTONOMY",
   "表面配合": "ACCOMMODATE",
   "暫時退出": "AVOID_CONFLICT",
-  "壓抑自身需求": "SELF_DOUBT",
+  "調整原本安排": "SELF_DOUBT",
   "直接表達想法": "AUTONOMY",
   "理解與蒐集資訊": "SEEK_UNDERSTANDING",
   "表面配合與保留自主權": "ACCOMMODATE",
-  "受到影響與自我懷疑": "SELF_DOUBT",
+  "重新評估原本選擇": "SELF_DOUBT",
   "隱藏感受": "AVOID_CONFLICT",
-  "自我懷疑": "SELF_DOUBT",
+  "先整理想法": "SELF_DOUBT",
   "主動確認": "SEEK_UNDERSTANDING",
   "對等疏遠": "DISTANCE",
   "認為對方過度解讀": "DISMISS",
   "主動說明": "SEEK_UNDERSTANDING",
-  "放棄澄清": "AVOID_CONFLICT",
-  "配合氣氛": "ACCOMMODATE",
-  "強烈反擊": "CONFRONT",
+  "暫不補充說明": "AVOID_CONFLICT",
+  "先配合當下氣氛": "ACCOMMODATE",
+  "直接表達不舒服": "CONFRONT",
   "默默疏遠": "DISTANCE",
-  "否定感受": "DISMISS",
+  "未先回應對方感受": "DISMISS",
   "尷尬迴避": "AVOID_CONFLICT",
   "理解差異": "EMPATHY",
   "分散責任": "DISMISS",
@@ -97,14 +97,14 @@ const REACTION_CATEGORY_MAP = {
   "關係優先與不想掃興": "ACCOMMODATE",
   "清楚拒絕": "SELF_PROTECT",
   "逃避衝突": "AVOID_CONFLICT",
-  "勉強配合": "ACCOMMODATE",
-  "忽略訊息": "AVOID_CONFLICT",
+  "依照對方期待行動": "ACCOMMODATE",
+  "暫不回應訊息": "AVOID_CONFLICT",
   "清楚說明": "SEEK_UNDERSTANDING",
   "表面祝福與隱藏失落": "ACCOMMODATE",
   "直接質疑": "CONFRONT",
   "表達感受": "SEEK_UNDERSTANDING",
   "暫時離開": "AVOID_CONFLICT",
-  "勉強表達祝福": "ACCOMMODATE",
+  "先表達祝福": "ACCOMMODATE",
   "表達感受與需要": "SEEK_UNDERSTANDING"
 };
 
@@ -160,7 +160,7 @@ const CATEGORY_TEMPLATES = {
   },
   DISTANCE: {
     label: "傾向拉開距離",
-    self: "在這個情境中，你可能不想把事情鬧大，選擇用拉開距離的方式保護自己。這能避開當下的衝突，但心裡的感受不一定被說出來。",
+    self: "在這個情境中，你可能選擇先保持距離，讓自己有時間整理感受。這能避開當下的衝突，但心裡的想法不一定被說出來。",
     other: "對方有時可能完全不知道發生了什麼，只感覺到關係突然變冷，容易感到困惑，卻不知道原因。",
     alt: ["我最近想先保持一點距離，但這不代表我們的關係結束了。", "我需要一點時間想清楚，之後想聊的時候會再找你。"]
   },
@@ -252,7 +252,7 @@ const RAW_QUESTIONS = [
     scenario: "你和喜歡的人因為一件小事吵架，後來你傳訊息給他，但他一直沒有回覆。你最可能：",
     options: [
       { code: "A", text: "又傳好幾則訊息給他，想趕快把事情講清楚。", reactionType: "積極追問" },
-      { code: "B", text: "覺得很生氣，心想：「不回就算了，我也不要理你。」", reactionType: "對抗回應" },
+      { code: "B", text: "感到不舒服，暫時不再主動聯絡對方。", reactionType: "對抗回應" },
       { code: "C", text: "覺得現在可能都還在氣頭上，先不繼續傳，晚一點再找他談。", reactionType: "冷靜處理" },
       { code: "D", text: "不敢再傳訊息，但開始一直想：「他是不是已經不喜歡我了？」", reactionType: "焦慮退縮" }
     ],
@@ -264,7 +264,7 @@ const RAW_QUESTIONS = [
     scenario: "晚餐時，家人問起你這次考試的成績。你說完後，他拿起手機說：「你看阿姨的兒子這次考前三名耶。」接著補一句：「人家可以，你為什麼不行？」你本來就已經因為成績有點難過。這時候，你最可能：",
     options: [
       { code: "A", text: "不說話，默默接受。", reactionType: "忍耐型" },
-      { code: "B", text: "回：「我就爛！」", reactionType: "反擊型" },
+      { code: "B", text: "回應：「我知道了。」暫時不再延伸討論。", reactionType: "直接表達不滿" },
       { code: "C", text: "說：「我知道你希望我進步，但這樣比較會讓我壓力很大。」", reactionType: "表達感受型" },
       { code: "D", text: "回房間，把門關起來。", reactionType: "離開現場型" }
     ],
@@ -284,7 +284,7 @@ const RAW_QUESTIONS = [
       { code: "A", text: "跟家人說清楚：「我知道你們擔心我的成績，但這件事情對我真的很重要，我希望你們也能夠支持我，我也會想辦法把讀書顧好。」", reactionType: "清楚表達與承擔責任" },
       { code: "B", text: "先答應再說：「好啦，我知道了。」不想跟家人吵，但之後還是繼續做自己喜歡的事情。", reactionType: "表面配合" },
       { code: "C", text: "選擇不說。覺得「反正講了你們也不會懂」，所以回房間，不想再跟家人討論。", reactionType: "暫時退出" },
-      { code: "D", text: "開始妥協。覺得家人可能是對的，開始減少自己喜歡的事情，甚至考慮乾脆放棄。", reactionType: "壓抑自身需求" }
+      { code: "D", text: "重新安排興趣與讀書的時間，暫時減少興趣投入。", reactionType: "調整原本安排" }
     ],
     reflection: "當關心和控制混在一起時，你可以先想：我真正想保留的是什麼？我願意為自己的選擇承擔哪些責任？"
   },
@@ -296,7 +296,7 @@ const RAW_QUESTIONS = [
       { code: "A", text: "直接說出自己的想法：「可是那是我以後想走的路，我想試試看。」", reactionType: "直接表達想法" },
       { code: "B", text: "先聽家人的。雖然心裡有自己的想法，但想先了解家人為什麼這麼說。", reactionType: "理解與蒐集資訊" },
       { code: "C", text: "表面答應，自己再想辦法。不想一直吵，所以先說「好，我知道了」，但其實還是想走自己的方向。", reactionType: "表面配合與保留自主權" },
-      { code: "D", text: "開始懷疑自己。覺得是不是家人比較懂，所以開始懷疑自己原本的選擇。", reactionType: "受到影響與自我懷疑" }
+      { code: "D", text: "重新思考原本的選擇，暫時不確定是否要維持原來的方向。", reactionType: "重新評估原本選擇" }
     ],
     reflection: "家人的經驗可以是一種資訊，但最後仍需要慢慢釐清：哪些是家人的擔心？哪些是我的價值與選擇？"
   },
@@ -306,9 +306,9 @@ const RAW_QUESTIONS = [
     scenario: "放學回家後，你傳訊息給一個平常很好的朋友：「欸欸欸！我今天終於被老師選去參加比賽了！！」平常他會跟你聊很多，結果過了兩個小時，他只回：「喔。」你看著那個「喔」，開始覺得哪裡怪怪的。你最可能：",
     options: [
       { code: "A", text: "回一個貼圖，假裝沒怎樣，但其實一直在想那個「喔」。", reactionType: "隱藏感受" },
-      { code: "B", text: "開始想：「我是不是做錯什麼？」", reactionType: "自我懷疑" },
+      { code: "B", text: "開始回想自己是否做了什麼，暫時不確定對方的想法。", reactionType: "先整理想法" },
       { code: "C", text: "問他：「你今天還好嗎？感覺你好像怪怪的。」", reactionType: "主動確認" },
-      { code: "D", text: "覺得他不想理我，那我也不要理他。", reactionType: "對等疏遠" }
+      { code: "D", text: "暫時不主動聯絡，之後再觀察彼此的互動。", reactionType: "對等疏遠" }
     ],
     reflection: "一句『喔』可以讓我們腦中瞬間出現很多劇情。但『我想到的』不一定等於『他正在想的』。"
   },
@@ -317,8 +317,8 @@ const RAW_QUESTIONS = [
     title: "同儕 2：朋友開你不喜歡的玩笑",
     scenario: "你週末剪了一個自己很喜歡的新髮型。星期一到學校，幾個朋友看到你，其中一個笑著說：「你這什麼頭啦！超像達爾欸！」其他人跟著笑，還有人拿手機說：「等一下，我拍給群組看！」你一開始也跟著笑，但其實已經有點不舒服。你最可能：",
     options: [
-      { code: "A", text: "繼續跟著笑，心裡想：「算了，不要搞得大家很尷尬。」", reactionType: "配合氣氛" },
-      { code: "B", text: "直接說：「到底有完沒完？很好笑是不是？」", reactionType: "強烈反擊" },
+      { code: "A", text: "跟著大家一起笑，先不表達自己的感受。", reactionType: "先配合當下氣氛" },
+      { code: "B", text: "直接告訴對方，這個玩笑讓自己感到不舒服。", reactionType: "直接表達不舒服" },
       { code: "C", text: "私下跟朋友說：「這個玩笑其實讓我不太舒服。」", reactionType: "表達界線" },
       { code: "D", text: "當下不說什麼，但之後開始減少跟這群朋友一起行動。", reactionType: "默默疏遠" }
     ],
@@ -335,8 +335,8 @@ const RAW_QUESTIONS = [
       { code: "D", text: "之後慢慢減少跟這群人一起行動，不想再主動靠近。", reactionType: "默默疏遠" }
     ],
     customSelf: {
-      A: "你可能不想把事情鬧大，但長期悶著，小小的不舒服可能變成心裡的一根刺。",
-      B: "你敢直接問原因，能快速釐清；若語氣太衝，對方也可能感到被興師問罪。",
+      A: "你可能先不詢問，把當下的感受留在心裡。",
+      B: "直接詢問可以較快了解原因，但對方可能需要時間說明。",
       C: "先找信任的人了解狀況，是較溫和也較能保護自己的方式。",
       D: "拉開距離可以保護自己，但可以想想這段關係值不值得先溝通一次。"
     },
@@ -352,17 +352,17 @@ const RAW_QUESTIONS = [
       { code: "C", text: "跟他說：「我可以幫你看不會的地方，但我不想一直讓你直接抄，而且你只有要作業時才來找我，我其實有點不舒服。」", reactionType: "表達感受與界線" },
       { code: "D", text: "開始躲他，早自習看到他來就故意先離開。", reactionType: "疏遠迴避" }
     ],
-    reflection: "幫忙和被利用之間的差別，常常在於：我是不是仍然可以說不，以及這段關係是否互相。"
+    reflection: "可以想想自己是否願意幫忙，以及雙方是否都能接受這樣的互動。"
   },
   {
     id: "Q11", sourceId: "STUDY-01-P1", part: 1, category: "學業", safetyFlag: false,
     title: "學業 1：明明很努力，怎麼還是考這麼差？",
     scenario: "為了這次數學考試，你連續好幾天晚上都在複習。昨天甚至讀到快 12 點，你心裡想：「這次應該至少有 80 分吧！」隔天老師把考卷發下來。你翻過來一看：58 分。坐你旁邊的朋友看到你的表情，小聲問：「你還好嗎？」這時候，你最可能：",
     options: [
-      { code: "A", text: "馬上把考卷蓋起來，笑著說：「沒差啦，下次再考就好。」", reactionType: "隱藏情緒與自我安慰" },
+      { code: "A", text: "先把考卷蓋起來，告訴自己下次再檢視這次的結果。", reactionType: "隱藏情緒與自我安慰" },
       { code: "B", text: "立刻拿出紅筆，一題一題看自己到底錯在哪。", reactionType: "立即找問題" },
       { code: "C", text: "跟朋友說：「我現在真的有點難過，先讓我一下，等等再看。」", reactionType: "先照顧心情" },
-      { code: "D", text: "把考卷塞進抽屜，心裡一直想：「我都讀成這樣了還只有 58，我是不是根本很笨？」", reactionType: "自我懷疑" }
+      { code: "D", text: "把考卷先收起來，之後再思考是否需要調整讀書方式。", reactionType: "先整理想法" }
     ],
     customSelf: {
       A: "你可能不太想讓別人看到自己失落。可以問自己：我是真的沒事，還是不想讓別人知道我很在意？",
@@ -378,7 +378,7 @@ const RAW_QUESTIONS = [
     scenario: "明天第一節就是期中考。現在是前一天晚上 7 點，你已經坐到書桌前，還有最後兩章沒看完。朋友在群組 tag 你：「等等去吃宵夜啦！」你回：「不行啦，我明天要考試，還沒讀完。」朋友又回：「蛤～才 2 個小時而已，沒有差這 2 個小時啦～每次約你都不來，你到底有沒有把我們當朋友啦。」這時候，你最可能：",
     options: [
       { code: "A", text: "想說「算了，就兩個小時」，最後還是換衣服出門。", reactionType: "關係優先與不想掃興" },
-      { code: "B", text: "回：「不要情勒我啦！我還要考試欸!!」", reactionType: "防衛反擊" },
+      { code: "B", text: "回應：「我明天有考試，目前需要先準備。」", reactionType: "防衛反擊" },
       { code: "C", text: "回：「我也很想去，但我真的還沒讀完。這次先不要，考完再一起出去。」", reactionType: "清楚拒絕" },
       { code: "D", text: "看著訊息不知道怎麼拒絕，最後乾脆把群組關掉，先不回。", reactionType: "逃避衝突" }
     ],
@@ -390,7 +390,7 @@ const RAW_QUESTIONS = [
     scenario: "考試前，你跟一個很好的朋友聊天。他一直說：「完蛋了啦，我根本沒讀，這次一定考超爛。」你則是真的準備了好幾天。隔天成績公布——你 58 分，他 94 分。他很開心地跑過來說：「蛤！居然 94！我昨天真的沒什麼讀欸！」可是聽到這句話的瞬間，你心裡就是有一點不開心。這時候，你最可能：",
     options: [
       { code: "A", text: "笑著說：「你很強欸，天才。」但其實心裡有點酸酸的。", reactionType: "表面祝福與隱藏失落" },
-      { code: "B", text: "回他：「不是說沒讀？結果考 94，你很假欸。」", reactionType: "直接質疑" },
+      { code: "B", text: "回應：「你之前不是說沒有讀嗎？我聽到時有點疑惑。」", reactionType: "直接質疑" },
       { code: "C", text: "跟他說：「你考很好真的很厲害，但我現在看到自己的分數有點難過，讓我安靜一下。」", reactionType: "表達感受" },
       { code: "D", text: "不太想繼續聊成績，找個理由先離開。", reactionType: "暫時離開" }
     ],
@@ -404,7 +404,7 @@ const RAW_QUESTIONS = [
     scenario: "有人很在乎你，但他想確認你的手機。你其實不太想給。你希望他怎麼回應？",
     options: [
       { code: "A", text: "「如果你沒秘密，給我看應該沒差吧？」", reactionType: "質疑對方" },
-      { code: "B", text: "「所以你就是不相信我？」", reactionType: "情緒反應" },
+      { code: "B", text: "「你不願意提供，是因為目前還不信任我嗎？」", reactionType: "情緒反應" },
       { code: "C", text: "「好，我可能會有點不安，但我尊重你不想給我看。」", reactionType: "尊重界線" },
       { code: "D", text: "一直問到你最後不好意思拒絕。", reactionType: "持續施壓" }
     ],
@@ -416,7 +416,7 @@ const RAW_QUESTIONS = [
     scenario: "你很在乎一個人，但他幾個小時沒有回覆你的訊息。你開始覺得自己好像不被重視。這時候，你希望對方怎麼回應？",
     options: [
       { code: "A", text: "馬上道歉，答應以後都會盡量立刻回覆你。", reactionType: "迎合你的期待" },
-      { code: "B", text: "回你：「我又不是一定要隨時回你！」", reactionType: "防衛反擊" },
+      { code: "B", text: "回你：「我不一定能隨時回覆訊息。」", reactionType: "防衛反擊" },
       { code: "C", text: "跟你說：「我不是故意不回，只是剛剛在忙，晚回不代表我不在乎你。」", reactionType: "說明狀況" },
       { code: "D", text: "暫時不回，等你沒那麼生氣再說。", reactionType: "暫時迴避" }
     ],
@@ -428,7 +428,7 @@ const RAW_QUESTIONS = [
     scenario: "你和喜歡的人吵架後，對方傳訊息給你，但你現在還在生氣，不想馬上回覆。你希望自己怎麼做？",
     options: [
       { code: "A", text: "先不斷傳訊息，要求對方立刻把事情講清楚。", reactionType: "積極追問" },
-      { code: "B", text: "覺得很生氣，心想：「不想回就算了，我也不要理你。」", reactionType: "對抗回應" },
+      { code: "B", text: "感到不舒服，暫時停止回應，等自己整理好心情再說。", reactionType: "對抗回應" },
       { code: "C", text: "告訴對方：「我現在還需要一點時間，晚一點我們再談。」", reactionType: "說明界線" },
       { code: "D", text: "完全不說原因，直接消失，等自己心情好了再說。", reactionType: "暫時迴避" }
     ],
@@ -475,10 +475,10 @@ const RAW_QUESTIONS = [
     title: "同儕 1：朋友突然變得很冷淡｜角色交換",
     scenario: "今天你剛好心情不太好，也有點累。這時候，一個平常很好的朋友很開心地傳訊息：「欸欸欸！我今天終於被老師選去參加比賽了！！」你看到訊息，但當下真的沒有心情聊天，所以只回一個：「喔。」過一下，朋友傳來：「你是不是不爽我？」這時候，你最可能：",
     options: [
-      { code: "A", text: "覺得：「蛤？我只是今天很累而已，他怎麼想那麼多？」", reactionType: "認為對方過度解讀" },
+      { code: "A", text: "我只是今天比較累，可能讓對方產生了不同的理解。", reactionType: "認為對方過度解讀" },
       { code: "B", text: "趕快跟他說：「沒有啦，我沒有不爽你，我只是今天心情不太好。」", reactionType: "主動說明" },
       { code: "C", text: "覺得有點不知道怎麼解釋，所以先不回。", reactionType: "暫時迴避" },
-      { code: "D", text: "心裡想：「他如果真的覺得我不爽，那就算了。」", reactionType: "放棄澄清" }
+      { code: "D", text: "暫時不補充說明，之後再決定是否解釋。", reactionType: "暫不補充說明" }
     ],
     reflection: "當自己成為那個只回『喔』的人，也許會發現：冷淡的回覆背後可能有很多原因。在知道答案以前，腦中想到的都還只是一種可能。"
   },
@@ -487,19 +487,19 @@ const RAW_QUESTIONS = [
     title: "同儕 2：朋友開你不喜歡的玩笑｜角色交換",
     scenario: "今天你的好朋友剪了一個新髮型來學校。你覺得很好笑，就說：「你這什麼頭啦！超像達爾欸！」旁邊幾個朋友也跟著笑。放學後，他私下告訴你：「其實你們今天一直笑我的頭髮，我有點不舒服。」這時候，你最可能：",
     options: [
-      { code: "A", text: "跟他說：「蛤？我們只是開玩笑而已，你不要那麼認真啦。」", reactionType: "否定感受" },
+      { code: "A", text: "跟他說：「我原本以為你也覺得這個玩笑可以接受。」", reactionType: "未先回應對方感受" },
       { code: "B", text: "有點尷尬，不知道怎麼回，之後先假裝沒發生這件事。", reactionType: "尷尬迴避" },
       { code: "C", text: "跟他說：「喔……原來你會不舒服，我本來以為你也覺得好笑。」", reactionType: "理解差異" },
       { code: "D", text: "覺得：「可是大家都在笑啊，又不是只有我。」", reactionType: "分散責任" }
     ],
-    reflection: "『我沒有惡意』和『對方真的不舒服』可以同時存在。理解對方的感受，不等於承認自己是壞人，而是多知道了一件事：原來這是他的界線。"
+    reflection: "『我沒有惡意』和『對方真的不舒服』可以同時存在。理解對方的感受，不代表自己原本就有意傷害對方，而是多知道了一件事：原來這是他的界線。"
   },
   {
     id: "Q20", sourceId: "STUDY-01-P2", part: 2, category: "學業", safetyFlag: false,
     title: "學業 1：明明很努力，怎麼還是考這麼差？｜角色交換",
     scenario: "今天拿到 58 分的人還是你。你真的很失望。這時候，你最希望旁邊的朋友怎麼回你？",
     options: [
-      { code: "A", text: "「沒差啦，才一次考試而已，想那麼多幹嘛。」", reactionType: "快速安慰" },
+      { code: "A", text: "「這只是一次考試，可以先休息一下，再決定接下來要怎麼做。」", reactionType: "快速安慰" },
       { code: "B", text: "馬上跟你一起檢討考卷。", reactionType: "立即解決問題" },
       { code: "C", text: "「你是不是有點難過？要不要先休息一下？你想講的話我可以聽。」", reactionType: "理解與陪伴" },
       { code: "D", text: "「你讀這麼久還這樣，是不是本來就不太會數學？」", reactionType: "直接評價" }
@@ -511,10 +511,10 @@ const RAW_QUESTIONS = [
     title: "學業 2：朋友邀你出去，但明天要考試｜角色交換",
     scenario: "明天第一節就是期中考。晚上 7 點你約朋友一起去吃宵夜，但朋友明天有重要考試，所以不能來。你最希望他怎麼回你？",
     options: [
-      { code: "A", text: "明明很想留下來讀書，但因為怕你失望，最後還是答應一起出來。", reactionType: "勉強配合" },
-      { code: "B", text: "「不要情勒我啦！我還要考試欸!!」", reactionType: "防衛反擊" },
+      { code: "A", text: "原本想留下來讀書，但考量你的期待後，最後仍答應一起出來。", reactionType: "依照對方期待行動" },
+      { code: "B", text: "「我明天有考試，目前需要先準備。」", reactionType: "防衛反擊" },
       { code: "C", text: "「我也很想去，但我真的還沒讀完。這次先不要，考完再一起出去。」", reactionType: "清楚說明" },
-      { code: "D", text: "看過訊息後完全不回你。", reactionType: "忽略訊息" }
+      { code: "D", text: "看過訊息後，暫時不回覆，等之後有空再說明。", reactionType: "暫不回應訊息" }
     ],
     reflection: "剛才當拒絕別人的人是你時，你選了什麼？現在變成被拒絕的人，答案還一樣嗎？朋友今天不能陪我，不代表他不在乎我。"
   },
@@ -523,8 +523,8 @@ const RAW_QUESTIONS = [
     title: "學業 3：朋友考很好，我卻有點開心不起來｜角色交換",
     scenario: "這次換過來。你考了 94 分，而你的好朋友只有 58 分。你很開心地跟他說：「我居然 94 欸！我昨天真的沒什麼讀欸！」他突然變得有點安靜。如果今天考比較高的人是你，你會希望朋友怎麼回應你？",
     options: [
-      { code: "A", text: "明明很難過，還是笑著跟你說：「你很強欸，天才！」", reactionType: "勉強表達祝福" },
-      { code: "B", text: "「不是說沒讀？你很假欸。」", reactionType: "直接質疑" },
+      { code: "A", text: "即使自己有些失落，仍笑著跟你說：「你很強欸，天才！」", reactionType: "先表達祝福" },
+      { code: "B", text: "「你之前不是說沒有讀嗎？我聽到時有點疑惑。」", reactionType: "直接質疑" },
       { code: "C", text: "「你考很好真的很厲害，但我現在看到自己的成績有點難過，讓我安靜一下。」", reactionType: "表達感受與需要" },
       { code: "D", text: "什麼都不說，突然離開。", reactionType: "暫時離開" }
     ],
