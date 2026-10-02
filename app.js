@@ -492,6 +492,8 @@ function renderFinish() {
     wrap.appendChild(el('h2', { class: 'page-title' }, '謝謝你的參與'));
     wrap.appendChild(el('div', { class: 'sent-ok' }, '✓ 資料已成功送出'));
     wrap.appendChild(el('p', { class: 'lead' }, '你的選擇不代表你是怎樣的人，只代表你在某個情境下可能出現的一種反應。'));
+    wrap.appendChild(renderAnswerSummary());
+    wrap.appendChild(renderSharedReflection());
     wrap.appendChild(el('button', {
       class: 'btn btn-primary full',
       onclick: () => { state.screen = 'personality'; render(); }
@@ -546,6 +548,96 @@ function renderFinish() {
 
   wrap.appendChild(el('p', { class: 'foot-note' }, '送出的資料為匿名紀錄，不包含任何可辨識身分的資訊。'));
   return wrap;
+}
+
+/* ------------------------------------------------------------
+   完成後的本次作答摘要
+   ------------------------------------------------------------
+   只整理使用者實際選過的選項，不將選擇解讀成固定人格。
+------------------------------------------------------------- */
+function renderAnswerSummary() {
+  const box = el('div', { class: 'analysis answer-summary' });
+  const answered = QUESTIONS.filter(q => state.answers[q.id]);
+  const answeredNormally = answered.filter(q => !state.answers[q.id].isDecline);
+  const declined = answered.filter(q => state.answers[q.id].isDecline).length;
+
+  box.appendChild(el('h3', {}, '本次作答摘要'));
+
+  if (state.selectedUnits.length > 0) {
+    box.appendChild(el('p', { class: 'sub' }, `你選擇體驗的單元：${state.selectedUnits.join('、')}`));
+  }
+
+  box.appendChild(el('p', { class: 'sub' },
+    `共記錄 ${answered.length} 題，其中 ${answeredNormally.length} 題選擇了情境回應，${declined} 題選擇拒答或不想回答。`
+  ));
+
+  if (answeredNormally.length === 0) {
+    box.appendChild(el('p', {}, '你這次沒有選擇任何情境回應，保留自己的感受與界線也是一種選擇。'));
+    return box;
+  }
+
+  const part1 = answeredNormally.filter(q => q.part === 1);
+  const part2 = answeredNormally.filter(q => q.part === 2);
+
+  function appendPart(title, questions) {
+    if (!questions.length) return;
+    box.appendChild(el('h3', { class: 'summary-part-title' }, title));
+
+    questions.forEach(q => {
+      const answer = state.answers[q.id];
+      const item = el('div', { class: 'summary-item' });
+      item.appendChild(el('p', { class: 'summary-question' }, `${q.category}｜${q.title}`));
+      item.appendChild(el('p', { class: 'summary-answer' }, `${answer.code}｜${answer.text}`));
+      box.appendChild(item);
+    });
+  }
+
+  appendPart('Part 1｜我的選擇', part1);
+  appendPart('Part 2｜換位後的選擇', part2);
+
+  if (part2.length > 0) {
+    const changedCount = part2.filter(q => {
+      const p1 = QUESTIONS.find(x => x.sourceId === q.sourceId.replace('-P2', '-P1'));
+      return p1 && state.answers[p1.id] && state.answers[q.id].code !== state.answers[p1.id].code;
+    }).length;
+
+    box.appendChild(el('p', { class: 'sub summary-change' },
+      `角色交換後，你有 ${changedCount} 題的選擇和 Part 1 不同。`
+    ));
+  }
+
+  box.appendChild(el('p', { class: 'small' },
+    '以上只是整理你在本次活動中的選擇，不代表你固定的個性，也沒有好壞之分。'
+  ));
+
+  return box;
+}
+
+/* ------------------------------------------------------------
+   所有人一致看到的活動總結
+------------------------------------------------------------- */
+function renderSharedReflection() {
+  const box = el('div', { class: 'analysis shared-reflection' });
+
+  box.appendChild(el('h3', {}, '給你的活動總結'));
+  box.appendChild(el('p', {}, '謝謝你完成這次情緒與人際互動探索。'));
+  box.appendChild(el('p', {}, '每個情境都沒有唯一正確的答案。'));
+  box.appendChild(el('p', {}, '有時候，我們會先保護自己；有時候，我們會先理解對方；也有時候，我們需要先讓自己冷靜一下。'));
+  box.appendChild(el('p', {}, '下次在回應別人以前，可以試著：'));
+
+  const steps = [
+    '先放慢一下，不急著立刻回答。',
+    '注意自己現在的感受和需要。',
+    '想想看，如果我是對方，可能會有什麼感受？',
+    '聽完對方的想法，再決定要怎麼回應。',
+    '在照顧自己的同時，也尊重對方的感受與界線。'
+  ];
+
+  box.appendChild(el('ol', {}, steps.map(text => el('li', {}, text))));
+  box.appendChild(el('p', {}, '同理心不代表一定要同意對方，而是願意先理解對方為什麼會這樣想。'));
+  box.appendChild(el('p', {}, '你不需要每次都做出完美的回應，願意停下來想一想，本身就是一種練習。'));
+
+  return box;
 }
 
 /* ------------------------------------------------------------
@@ -654,7 +746,7 @@ function buildPayload() {
   QUESTIONS.forEach(q => {
     const a = state.answers[q.id];
     // 未選到的單元或跳過的題目，一律記錄為拒答，避免試算表留下空白。
-    payload[q.id] = a ? (a.isDecline ? 'E｜拒答／不想回答' : `${a.code}｜${a.text}`) : 'E｜拒答／不想回答';
+    payload[q.id] = a ? (a.isDecline ? `E｜${DECLINE_OPTION.text}` : `${a.code}｜${a.text}`) : `E｜${DECLINE_OPTION.text}`;
     if (q.part === 2) {
       const p1 = QUESTIONS.find(x => x.sourceId === q.sourceId.replace('-P2', '-P1'));
       const p1Answer = p1 ? state.answers[p1.id] : null;

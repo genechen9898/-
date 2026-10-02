@@ -10,7 +10,7 @@
 /* ---------- 拒答選項（每題共用） ---------- */
 const DECLINE_OPTION = {
   code: "E",
-  text: "拒答／不想回答",
+  text: "拒答／不想回答（以上選項都不接近我）",
   reactionType: null,          // 不納入分析
   isDecline: true
 };
